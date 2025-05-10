@@ -193,6 +193,8 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 
     private final String rolledLogExcludePattern;
 
+    private final int rolledLogInterval;
+
     private Path flinkJarPath;
 
     private YarnConfigOptions.UserJarInclusion userJarInclusion;
@@ -230,7 +232,10 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
                 flinkConfiguration.get(YarnConfigOptions.ROLLED_LOGS_INCLUDE_PATTERN);
         this.rolledLogExcludePattern =
                 flinkConfiguration.get(YarnConfigOptions.ROLLED_LOGS_EXCLUDE_PATTERN);
+        this.rolledLogInterval = 
+            flinkConfiguration.get(YarnConfigOptions.LOG_ROLLING_INTERVAL);
     }
+        
 
     /** Adapt flink env setting. */
     private static <T> void adaptEnvSetting(
@@ -427,7 +432,12 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
                     "Neither the HADOOP_CONF_DIR nor the YARN_CONF_DIR environment variable is set. "
                             + "The Flink YARN Client needs one of these to be set to properly load the Hadoop "
                             + "configuration for accessing YARN.");
+        if (rolledLogInterval <= 0) {
+           throw new IllegalConfigurationException(
+                "Log rolling interval must be a positive integer (seconds)"
+            );
         }
+        
     }
 
     public String getNodeLabel() {
@@ -1557,6 +1567,13 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
             ctx = ctx == null ? Records.newRecord(LogAggregationContext.class) : ctx;
             ctx.setRolledLogsExcludePattern(rolledLogExcludePattern);
         }
+        
+        if (rolledLogInterval > 0) {
+            if (ctx == null) {
+                ctx = Records.newRecord(LogAggregationContext.class);
+        }
+        ctx.setRolledLogsIntervalSeconds(rolledLogInterval);
+    }
 
         if (ctx != null) {
             appContext.setLogAggregationContext(ctx);
