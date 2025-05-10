@@ -1089,6 +1089,38 @@ class YarnClusterDescriptorTest {
         }
     }
 
+       /**
+ * Verifies that the YARN log rolling interval configuration is properly propagated to the
+ * LogAggregationContext. Tests both explicit configuration and default value handling.
+ */
+@Test
+void testLogRollingIntervalConfiguration() throws Exception {
+    // Test valid interval configuration
+    Configuration config = new Configuration();
+    config.set(YarnConfigOptions.LOG_ROLLING_INTERVAL, 1800);
+    
+    YarnClusterDescriptor descriptor = createYarnClusterDescriptor(config);
+    TestApplicationSubmissionContext appContext = new TestApplicationSubmissionContext();
+    
+    // Execute the method under test
+    descriptor.setRolledLogConfigs(appContext);
+    
+    // Verify interval is set correctly
+    assertThat(appContext.logAggregationContext.getRolledLogsIntervalSeconds())
+        .isEqualTo(1800);
+
+    // Test default value when not explicitly configured
+    config = new Configuration();
+    descriptor = createYarnClusterDescriptor(config);
+    appContext = new TestApplicationSubmissionContext();
+    
+    descriptor.setRolledLogConfigs(appContext);
+    
+    // Verify default interval (3600 seconds = 1 hour)
+    assertThat(appContext.logAggregationContext.getRolledLogsIntervalSeconds())
+        .isEqualTo(3600); 
+}
+
     private static class TestApplicationSubmissionContext
             extends ApplicationSubmissionContextPBImpl {
 
