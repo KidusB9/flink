@@ -420,6 +420,14 @@ public class YarnConfigOptions {
                             "Java regular expression to exclude certain log files from rolling log aggregation."
                                     + " Log files matching the defined exclude pattern will be ignored during aggregation."
                                     + " If a log file matches both the include and exclude patterns, the exclude pattern takes precedence and the file will be excluded from aggregation.");
+    
+    @Documentation.Section(Documentation.Sections.EXPERT_YARN_CONFIGURATION)
+    public static final ConfigOption<Integer> LOG_ROLLING_INTERVAL =
+        key("yarn.log-aggregation.rolling-interval-seconds")
+            .intType()
+            .defaultValue(3600)
+            .withDescription(
+                    "Interval in seconds after which aggregated logs are rolled. Must be a positive integer.");
 
     @SuppressWarnings("unused")
     public static final ConfigOption<String> HADOOP_CONFIG_KEY =
